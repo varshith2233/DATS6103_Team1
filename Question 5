@@ -50,3 +50,67 @@ plt.xlabel('Date')
 plt.ylabel('Number of Crimes')
 plt.legend()
 plt.show()
+
+# Analyze changes in overall crime rates in post-pandemic period
+post_pandemic_total_crimes = post_pandemic_monthly.sum()
+print(f"Total number of crimes in the post-pandemic period: {post_pandemic_total_crimes}")
+
+# Analyze changes in crime types in post-pandemic period
+post_pandemic_crime_types = post_pandemic_data['Crm Cd Desc'].value_counts(normalize=True)
+
+# Compare the top 5 crime types in post-pandemic period
+top5_post_pandemic_crime_types = post_pandemic_crime_types.head(5)
+print("\nTop 5 Crime Types in the Post-Pandemic Period:")
+print(top5_post_pandemic_crime_types)
+
+# Analyze crime rates and patterns in the last quarter of the post-pandemic period
+plt.figure(figsize=(12, 6))
+plt.plot(post_pandemic_last_quarter_monthly.index, post_pandemic_last_quarter_monthly, label='Last Quarter of Post-Pandemic')
+plt.title('Monthly Crime Trends: Last Quarter of Post-Pandemic Period')
+plt.xlabel('Date')
+plt.ylabel('Number of Crimes')
+plt.legend()
+plt.show()
+
+# Analyze changes in crime types in the last quarter of the post-pandemic period
+post_pandemic_last_quarter_crime_types = post_pandemic_last_quarter_data['Crm Cd Desc'].value_counts(normalize=True)
+top5_post_pandemic_last_quarter_crime_types = post_pandemic_last_quarter_crime_types.head(5)
+print("\nTop 5 Crime Types in the Last Quarter of Post-Pandemic Period:")
+print(top5_post_pandemic_last_quarter_crime_types)
+
+#%%
+# Analyzing distribution of crime types in the last quarter of post-pandemic period
+plt.figure(figsize=(10, 6))
+post_pandemic_last_quarter_crime_types.value_counts().head(10).plot(kind='bar', color='skyblue')
+plt.title('Top 10 Crime Types in the Last Quarter of Post-Pandemic Period')
+plt.xlabel('Crime Type')
+plt.ylabel('Number of Occurrences')
+plt.xticks(rotation=45)
+plt.show()
+
+# Filter data for the last quarter of the post-pandemic period
+last_quarter_post_pandemic_start = post_pandemic_start - pd.DateOffset(months=3)
+last_quarter_post_pandemic_data = post_pandemic_data[(post_pandemic_data['DATE OCC'] >= last_quarter_post_pandemic_start) & (post_pandemic_data['DATE OCC'] < post_pandemic_start)]
+
+# Calculate the distribution of crime types in the last quarter of the post-pandemic period
+last_quarter_post_pandemic_crime_types = last_quarter_post_pandemic_data['Crm Cd Desc'].value_counts(normalize=True).head(10)
+
+# Plotting the distribution of crime types
+plt.figure(figsize=(10, 6))
+sns.barplot(x=last_quarter_post_pandemic_crime_types.values, y=last_quarter_post_pandemic_crime_types.index, palette='viridis')
+plt.title('Distribution of Crime Types in the Last Quarter of the Post-Pandemic Period')
+plt.xlabel('Proportion of Crimes')
+plt.ylabel('Crime Type')
+plt.show()
+
+
+# Calculate the distribution of crime types for the entire post-pandemic period
+post_pandemic_crime_types = post_pandemic_data['Crm Cd Desc'].value_counts(normalize=True).head(10)
+
+# Plotting the distribution of crime types
+plt.figure(figsize=(10, 6))
+sns.barplot(x=post_pandemic_crime_types.values, y=post_pandemic_crime_types.index, palette='viridis')
+plt.title('Distribution of Crime Types in the Post-Pandemic Period')
+plt.xlabel('Proportion of Crimes')
+plt.ylabel('Crime Type')
+plt.show()
