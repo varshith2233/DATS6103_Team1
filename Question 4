@@ -114,3 +114,17 @@ plt.title('Distribution of Crime Types in the Post-Pandemic Period')
 plt.xlabel('Proportion of Crimes')
 plt.ylabel('Crime Type')
 plt.show()
+
+# Plotting Monthly Crime Trends for Post-Pandemic Period
+plt.figure(figsize=(12, 6))
+plt.plot(post_pandemic_monthly.index, post_pandemic_monthly, label='Post-Pandemic')
+plt.title('Monthly Crime Trends: Post-Pandemic')
+plt.xlabel('Date')
+plt.ylabel('Number of Crimes')
+plt.legend()
+plt.show()
+
+# Calculating and Printing Total Number of Crimes in Post-Pandemic Period
+post_pandemic_total_crimes = post_pandemic_monthly.sum()
+print(f"Total number of crimes in the post-pandemic period: {post_pandemic_total_crimes}")
+
