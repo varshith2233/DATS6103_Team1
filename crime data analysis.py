@@ -41,7 +41,11 @@ columns_to_remove = ['Part 1-2', 'Mocodes', 'Vict Descent', 'Crm Cd 2', 'Crm Cd 
 data.drop(columns=columns_to_remove, inplace=True)
 
 data.head()
-
+#%%
+#create column month from DATE OCC
+data['DATE OCC'] = pd.to_datetime(data['DATE OCC'])
+data['Month'] = data['DATE OCC'].dt.month
+print(data.head())
 
 # %%
 
@@ -246,7 +250,7 @@ data_2023["Weapon Used Cd"].replace({"Not Reported": 0}, inplace=True)
 #replacing: {"IC": 0, "AO": 1, "AA": 2, "JA": 3, "JO": 4, "CC": 5}
 data_2023.Status.replace({"IC": 0, "AO": 1, "AA": 2, "JA": 3, "JO": 4, "CC": 5}, inplace=True)
 #data_2023.Status.unique()
-
+"""replaced status data with dummy values and weapon used cd with 0 for not reported"""
 # %%
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -278,7 +282,7 @@ report = classification_report(y_test, y_pred)
 
 print(f"Accuracy: {accuracy:.2f}")
 print("Classification Report:\n", report)
-
+"""performed logistic regression and accuracy is performance is 0.79. initially The data is normalised and feature selection is done. these features are common among the variables and are used for prediction. the model is trained with 0.8 fraction of data and tested with remaining of the data."""
 #%%
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score, classification_report
@@ -297,6 +301,7 @@ report = classification_report(y_test, y_pred)
 
 print(f"Accuracy: {accuracy:.2f}")
 print("Classification Report:\n", report)
+"""Decision tree classifier is used and accuracy is 0.74. same data features has been used and the model is trained with 0.8 fraction of data and tested with remaining of the data."""
 # %%
 # Hyperparameter tuning for Decision Tree
 for i in [2,3,4,5,6]:
@@ -305,6 +310,8 @@ for i in [2,3,4,5,6]:
     y_pred = clf.predict(X_test_scaled)
     accuracy = accuracy_score(y_test, y_pred)
     print(f"Accuracy with max depth {i}: {accuracy:.2f}")
+    print("Classification Report:\n", classification_report(y_test, y_pred))
+"""since the accuracy of decision tree is  less I have performed hyperparameter tuning with different depth and I got 0.80 accuracy"""
 # %%
 from sklearn.neighbors import KNeighborsClassifier
 #KNN
@@ -315,6 +322,7 @@ for i in [1,2,3,4,5]:
     accuracy = accuracy_score(y_test, y_pred)
     print(f"Accuracy with k = {i}: {accuracy:.2f}")
     print("Classification Report:\n", classification_report(y_test, y_pred))
+"""KNN is used, hyperparameter tuning is performed with different k values and I got 0.79 accuracy"""
 # %%
 # Random Forest
 from sklearn.ensemble import RandomForestClassifier
@@ -333,4 +341,7 @@ report = classification_report(y_test, y_pred)
 
 print(f"Accuracy: {accuracy:.2f}")
 print("Classification Report:\n", report)
+"""Random forest classifier is used and accuracy is 0.80. the model is trained with 0.8 fraction of data and tested with remaining of the data."""
+# %%
+"""conclusion: I have performed data analysis on crime data and performed data modelling with logistic regression, decision tree, KNN and Random forest. Random forest classifier has given the best accuracy of 0.80. I have performed hyperparameter tuning for decision tree and KNN and got 0.80 and 0.79 accuracy."""
 # %%
