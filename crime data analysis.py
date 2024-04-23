@@ -642,3 +642,147 @@ The key factors influencing crime rates across various neighborhoods in Los Ange
 These factors provide insights into where and when crimes are likely to occur and who is most affected
 
 '''
+
+
+#Q3 Can we identify emerging spatial and temporal patterns or hotspots for crime categories to inform proactive and targeted interventions?
+
+# Temporal Analysis
+#Monthly Crime Trends
+
+monthly_crimes = data_2023.groupby('Month').size()
+plt.figure(figsize=(10, 6))
+monthly_crimes.plot(kind='bar')
+plt.title('Monthly Crime Trends in 2023')
+plt.xlabel('Month')
+plt.ylabel('Number of Crimes')
+plt.xticks(rotation=0)
+plt.show()
+
+# From monthly crime trends chart, it appears the crime count is fairly consistent throughout the year, with slight variations.
+
+# Hourly Crime Trends
+hourly_crimes = data_2023.groupby('Hour').size()
+plt.figure(figsize=(10, 6))
+hourly_crimes.plot(kind='bar', color='orange')
+plt.title('Hourly Crime Trends in 2023')
+plt.xlabel('Hour of the Day')
+plt.ylabel('Number of Crimes')
+plt.xticks(rotation=0)
+plt.show()
+
+#%%
+
+# Spatial Analysis
+#The latitude and longitude data to identify clusters of high crime incidence
+
+print(data_2023['LON'].describe())
+print(data_2023['LAT'].describe())
+
+# For longitude ('LON'), the max value is 0.0, which doesn't make sense given the mean and other percentiles are around -118. This suggests there may be data entry errors or missing values recorded as 0.0, which would not be valid longitude values for crime data presumably focused on a specific geographical area.
+# For latitude ('LAT'), the minimum value is 0.0, which again is highly unlikely for a dataset focused on a specific city or region. This indicates there are likely invalid or missing entries recorded as 0.0.
+
+# Filter out invalid longitude and latitude values
+data_2023 = data_2023[(data_2023['LON'] != 0.0) & (data_2023['LAT'] != 0.0)]
+
+# Consider min and max values of both longitude and latitide
+longitude_bounds = [-118.66760, -118.27400]
+latitude_bounds = [34.01650, 34.32900]   
+
+data_2023 = data_2023[
+    (data_2023['LON'].between(longitude_bounds[0], longitude_bounds[1])) &
+    (data_2023['LAT'].between(latitude_bounds[0], latitude_bounds[1]))
+]
+
+# Plotting the data
+plt.figure(figsize=(10, 10))
+plt.scatter(data_2023['LON'], data_2023['LAT'], alpha=0.5)
+plt.title('Spatial Distribution of Crimes')
+plt.xlabel('Longitude')
+plt.ylabel('Latitude')
+plt.show()
+
+
+
+
+# %%
+
+#Clustering for Hotspot Detection
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+import folium
+
+coordinates = data_2023[['LAT', 'LON']]
+# Scaling the coordinates to normalize data
+scaler = StandardScaler()
+coordinates_scaled = scaler.fit_transform(coordinates)
+# Elbow method to find the optimal number of clusters
+ssd = []
+range_n_clusters = list(range(1, 11))
+for num_clusters in range_n_clusters:
+    kmeans = KMeans(n_clusters=num_clusters, max_iter=1000)
+    kmeans.fit(coordinates_scaled)
+    ssd.append(kmeans.inertia_)
+
+# Plotting the results of the Elbow method
+plt.figure(figsize=(10, 5))
+plt.plot(range_n_clusters, ssd, 'bo-')
+plt.xlabel('Number of Clusters (k)')
+plt.ylabel('Sum of Squared Distances')
+plt.title('Elbow Method For Optimal k')
+plt.show()
+
+#Looking at  graph, the elbow seems to be at around k=3. The curve starts to flatten out after that point, indicating that increasing the number of clusters beyond 3 yields diminishing returns in terms of reducing the SSD
+
+# %%
+
+# Fit K-Means with the optimal cluster number (assume k=3 from elbow plot observation)
+kmeans = KMeans(n_clusters=3, random_state=42)
+kmeans.fit(coordinates_scaled)
+data_2023['cluster'] = kmeans.labels_
+
+
+
+# Mapping
+map = folium.Map(location=[data_2023['LAT'].mean(), data_2023['LON'].mean()], zoom_start=11)
+colors = ['red', 'blue', 'green', 'purple', 'orange']
+
+# Add points to the map
+for idx, row in data_2023.iterrows():
+    folium.CircleMarker([row['LAT'], row['LON']], radius=5, color=colors[row['cluster']]).add_to(map)
+
+# Display map
+map
+# %%
+# Choosing an optimal k from the elbow plot and applying K-Means clustering
+optimal_k = 3 
+kmeans = KMeans(n_clusters=optimal_k, max_iter=1000, random_state=42)
+cluster_labels = kmeans.fit_predict(coordinates_scaled)
+
+# Visualizing the clusters on a map
+centroids = kmeans.cluster_centers_
+centroids = scaler.inverse_transform(centroids)  # Inverse the scaling to get actual coordinates
+
+map_center = [data_2023['LAT'].mean(), data_2023['LON'].mean()]
+map = folium.Map(location=map_center, zoom_start=12)
+
+# Adding data points to the map
+for idx, row in data_2023.iterrows():
+    folium.CircleMarker(location=[row['LAT'], row['LON']],
+                        radius=5,
+                        color='blue',
+                        fill=True,
+                        fill_opacity=0.7).add_to(map)
+
+# Adding centroids to the map
+for centroid in centroids:
+    folium.CircleMarker(location=[centroid[0], centroid[1]],
+                        radius=10,
+                        color='red',
+                        fill=True,
+                        fill_color='red',
+                        fill_opacity=1).add_to(map)
+
+# Displaying result
+map
+# %%
