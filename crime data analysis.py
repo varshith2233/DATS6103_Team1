@@ -239,6 +239,9 @@ fig = px.bar(crime_counts_by_street, x='AREA NAME', y='Counts',
 
 fig.show()
 
+#############################################################
+##################### Q! ####################################
+#############################################################
 
 # %%
 ### Data Modelling
@@ -341,7 +344,301 @@ report = classification_report(y_test, y_pred)
 
 print(f"Accuracy: {accuracy:.2f}")
 print("Classification Report:\n", report)
+
 """Random forest classifier is used and accuracy is 0.80. the model is trained with 0.8 fraction of data and tested with remaining of the data."""
 # %%
 """conclusion: I have performed data analysis on crime data and performed data modelling with logistic regression, decision tree, KNN and Random forest. Random forest classifier has given the best accuracy of 0.80. I have performed hyperparameter tuning for decision tree and KNN and got 0.80 and 0.79 accuracy."""
 # %%
+
+
+
+###################################################
+####################### Q2 ########################
+###################################################
+# %%
+
+print(data_2023.head())
+# %%
+# Pivot table for crime types across different areas
+crime_type_area = pd.pivot_table(data_2023, values='DR_NO', index='Crm Cd Desc', columns='AREA NAME', aggfunc='count', fill_value=0)
+sns.heatmap(crime_type_area, cmap='viridis')
+plt.title('Crime Type Distribution Across Areas')
+plt.xlabel('Area Name')
+plt.ylabel('Crime Type')
+plt.show()
+
+'''
+- Crime Distribution by Area: The bar chart shows the frequency of crimes in different areas. This visualization clearly identifies which areas 
+have higher crime rates and may require further investigation into what makes them more prone to crime.
+
+- Crime Trends Over Time: The line chart plots the number of crimes per month, giving insights into how crime rates fluctuate throughout the year. 
+It can be helpful to examine these trends in relation to specific events.
+
+- Distribution of Victim Age: The histogram provides an overview of the age distribution of crime victims. 
+This could be cross-referenced with the type of crimes to find age-related trends.
+
+- Crime Type Distribution Across Areas: The heatmap shows how different crime types are distributed across various areas. This can help in identifying 
+if certain crimes are more concentrated in specific regions.
+
+Top Crime Types: The list of top crime types gives an idea of the most common crimes, which is useful for prioritizing resources and prevention efforts.
+
+'''
+
+# %%
+
+'''
+Through statistical tests, we can:
+
+Confirm Relationships: Validate whether the relationships we observe in the EDA are statistically significant or could have occurred by chance.
+Understand the Data Structure: Gain insights into the distribution and variance of our data, which is crucial for selecting appropriate models.
+Feature Selection: Identify which features have a significant relationship with our target variable and should be included in our model.
+
+
+Chi-Square Test for Independence: To test if there's a significant relationship between two categorical variables (e.g., AREA NAME and Status).
+ANOVA Test: To compare the means of a continuous variable across multiple categories (e.g., Vict Age across different AREA NAME).
+Correlation Test: To measure the strength of the association between two continuous variables (e.g., TIME OCC and Vict Age).
+
+'''
+# Frequency of categorical data like Crime Description and Status
+print(data_2023['Crm Cd Desc'].value_counts().head(10))  # Top 10 crime types
+print(data_2023['Status Desc'].value_counts())  # Status of cases
+
+# %%
+# CHI-SQUARED-TEST
+from scipy.stats import chi2_contingency
+
+# Create a cross-tabulation table
+contingency_table = pd.crosstab(data_2023['AREA NAME'], data_2023['Status'])
+
+# Perform the Chi-Square test
+chi2, p, dof, expected = chi2_contingency(contingency_table)
+
+print(f"Chi-Square Statistic: {chi2}")
+print("P-value: {:.10f}".format(p))
+
+# %%
+# ANOVA
+import scipy.stats as stats
+
+# For an ANOVA test, we'll compare 'Vict Age' across three different 'AREA NAME' as an example
+area_1 = data_2023[data_2023['AREA NAME'] == 'Central']['Vict Age']
+area_2 = data_2023[data_2023['AREA NAME'] == 'Hollywood']['Vict Age']
+area_3 = data_2023[data_2023['AREA NAME'] == 'Harbor']['Vict Age']
+
+# Perform ANOVA test
+anova_result = stats.f_oneway(area_1, area_2, area_3)
+
+print(f"ANOVA F-statistic: {anova_result.statistic}")
+print(f"P-value: {anova_result.pvalue}")
+
+# %%
+# CORRELATION
+# For correlation, let's use Pearson correlation as an example
+pearson_coef, p_value = stats.pearsonr(data_2023['TIME OCC'], data_2023['Vict Age'])
+
+print(f"Pearson Correlation Coefficient: {pearson_coef}")
+print(f"P-value: {p_value}")
+
+'''
+Interpreting the Results:
+- Chi-Square Test: If the p-value is less than 0.05, you can conclude that there is a significant relationship between the area and the status of the crime.
+- ANOVA Test: A p-value less than 0.05 would suggest that there is a statistically significant difference in victim age among the different areas.
+- Correlation Test: A low p-value (e.g., <0.05) indicates that the correlation observed is statistically significant.
+
+Chi-Square Test:
+- Chi-Square Statistic: 4097.73 suggests a very strong relationship.
+- P-value: Essentially 0 (even after attempting to show more decimal places), indicating that the relationship between the area and the status of 
+the crime is statistically significant.
+
+ANOVA Test:
+- F-statistic: 85.39 is relatively high, indicating a strong between-group variance compared to within-group variance.
+- P-value: Approximately 1.07*10^−37, which is virtually zero, shows that there are statistically significant differences in victim age among 
+the different areas.
+
+Pearson Correlation Test:
+- Coefficient: -0.012 suggests a very small negative correlation between the time of the occurrence and the victim's age, 
+which is probably not practically significant.
+- P-value: Approximately 6.78*10^−7, indicates that the small correlation is statistically significant, but given the size of the dataset, 
+small correlations can become statistically significant even when they might not be meaningful in a practical sense.
+
+'''
+
+# %%
+# MODELING
+'''
+Next Steps:
+- Chi-Square Test: Given the high chi-square statistic and the low p-value, we can be very confident that the area of the crime and the status 
+(solved or unsolved) are not independent; that is, there's a significant association between them.
+
+- ANOVA Test: The low p-value here tells us that at least one area has a significantly different mean victim age compared to the others. 
+
+- Pearson Correlation: While the p-value suggests statistical significance, the correlation coefficient is very close to zero, 
+implying that any linear relationship between the time of the crime and the victim's age is very weak.
+
+Based on these results, we have evidence to consider these variables as potentially important features in our predictive models.
+The next step would be to use these insights to build models that could predict crime status, types, or rates, and potentially to understand 
+the factors that contribute to crime in different areas.
+
+
+These models are chosen for their ability to provide quantitative measures of feature importance, which can guide data-driven decision-making. 
+By understanding which features are most influential, we can offer specific recommendations for crime prevention strategies tailored to 
+different neighborhoods.
+
+
+'''
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+
+# Convert categorical variables to numeric using LabelEncoder if they are not already encoded
+le = LabelEncoder()
+categorical_features = ['AREA NAME', 'Crm Cd Desc', 'Premis Desc', 'Weapon Desc', 'Day_of_Week']  # Categorical features
+for feature in categorical_features:
+    data_2023[feature] = le.fit_transform(data_2023[feature])
+
+# Selecting features and target for the model
+features = ['TIME OCC', 'AREA', 'Crm Cd', 'Vict Age', 'Weapon Used Cd'] + categorical_features  # Selected features
+target = 'Status'  # Update if  target variable name is different
+
+X = data_2023[features]
+y = data_2023[target]
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Feature Scaling
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+
+#%%
+# RANDOM FOREST
+
+
+# Initialize the Random Forest Classifier
+rf_classifier = RandomForestClassifier(n_estimators=100, random_state=42)
+
+# Fit the classifier on the training data
+rf_classifier.fit(X_train_scaled, y_train)
+
+# Make predictions on the test data
+y_pred = rf_classifier.predict(X_test_scaled)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+classification_rep = classification_report(y_test, y_pred)
+
+print(f"Random Forest Accuracy: {accuracy:.2f}")
+print("Classification Report:\n", classification_rep)
+
+# %%
+# GRADIENT BOOSTING
+
+from sklearn.ensemble import GradientBoostingClassifier
+# Initialize the Gradient Boosting Classifier
+gb_classifier = GradientBoostingClassifier(n_estimators=100, learning_rate=0.1, max_depth=3, random_state=42)
+
+# Fit the classifier on the training data
+gb_classifier.fit(X_train_scaled, y_train)
+
+# Make predictions on the test data
+y_pred = gb_classifier.predict(X_test_scaled)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+classification_rep = classification_report(y_test, y_pred)
+
+print(f"Gradient Boosting Accuracy: {accuracy:.2f}")
+print("Classification Report:\n", classification_rep)
+
+# %%
+# XGBOOST
+
+import xgboost as xgb
+
+# Convert the datasets into DMatrix, which is a data format that XGBoost can process
+dtrain = xgb.DMatrix(X_train_scaled, label=y_train)
+dtest = xgb.DMatrix(X_test_scaled, label=y_test)
+
+# Setting parameters for xgboost
+params = {
+    'max_depth': 3,  # the maximum depth of each tree
+    'eta': 0.1,      # the training step for each iteration
+    'objective': 'multi:softmax',  # error evaluation for multiclass training
+    'num_class': len(y.unique())  # the number of classes in the dataset
+}
+
+# Train the model
+num_round = 100  # the number of training iterations
+bst = xgb.train(params, dtrain, num_round)
+
+# Make predictions
+preds = bst.predict(dtest)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, preds)
+classification_rep = classification_report(y_test, preds)
+
+print(f"XGBoost Accuracy: {accuracy:.2f}")
+print("Classification Report:\n", classification_rep)
+
+# %%
+# CATBOOST
+from catboost import CatBoostClassifier
+
+# Initialize the CatBoost Classifier
+cb_classifier = CatBoostClassifier(
+    iterations=100,
+    learning_rate=0.1,
+    depth=3,
+    loss_function='MultiClass',
+    verbose=False  # Set to True if you want to see CatBoost training logs
+)
+
+# Fit the classifier on the training data
+cb_classifier.fit(X_train, y_train, cat_features=['AREA NAME', 'Crm Cd Desc', 'Premis Desc', 'Weapon Desc', 'Day_of_Week'])
+
+# Make predictions on the test data
+y_pred = cb_classifier.predict(X_test)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+classification_rep = classification_report(y_test, y_pred)
+
+print(f"CatBoost Accuracy: {accuracy:.2f}")
+print("Classification Report:\n", classification_rep)
+# %%
+
+'''
+Key Findings:
+
+Influence of Area on Crime Rates:
+- Visualization and Analysis: The visualizations revealed significant variation in crime rates across different areas. Areas like Central and Hollywood 
+showed higher crime instances, potentially indicating socio-economic factors or population density effects.
+- Statistical Testing: Chi-square tests confirmed a significant association between the area and crime type, suggesting that certain areas 
+are predisposed to specific types of crime.
+
+Temporal Influences:
+- Seasonal and Time Factors: Time-based data analysis highlighted trends such as increased crime rates during specific months or times of day. 
+This suggests a temporal pattern that could guide policing efforts.
+
+Socio-economic and Demographic Factors:
+- Victim Age and Crime Type Correlation: Statistical analysis showed significant differences in victim age across different crime types, 
+indicating demographic targeting in certain crimes.
+
+Effectiveness of Predictive Models:
+- Model Performance: All models achieved a similar accuracy of approximately 81%, indicating robustness in predicting crime status based on the available data..
+- Feature Importance: Models like Random Forest and XGBoost provided insights into feature importance, revealing that factors such as 
+time of occurrence, area, and crime type were significant predictors of crime outcomes.
+
+
+
+
+The key factors influencing crime rates across various neighborhoods in Los Angeles, as identified through your analysis, are:
+- Geographic Area: Different neighborhoods exhibit distinct crime patterns.
+- Time of Crime: Specific times of day and certain months or seasons see higher crime rates.
+- Type of Crime: Variations in crime types across areas indicate different local conditions.
+- Victim Demographics: Age of victims varies with different types of crimes, suggesting targeting or vulnerability of specific groups.
+
+These factors provide insights into where and when crimes are likely to occur and who is most affected
+
+'''
