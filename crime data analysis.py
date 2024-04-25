@@ -253,6 +253,7 @@ data_2023["Weapon Used Cd"].replace({"Not Reported": 0}, inplace=True)
 #replacing: {"IC": 0, "AO": 1, "AA": 2, "JA": 3, "JO": 4, "CC": 5}
 data_2023.Status.replace({"IC": 0, "AO": 1, "AA": 2, "JA": 3, "JO": 4, "CC": 5}, inplace=True)
 #data_2023.Status.unique()
+data_2023['Month'] = data_2023['DATE OCC'].dt.month
 """replaced status data with dummy values and weapon used cd with 0 for not reported"""
 # %%
 import numpy as np
