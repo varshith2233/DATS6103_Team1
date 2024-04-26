@@ -243,6 +243,8 @@ fig.show()
 ##################### Q! ####################################
 #############################################################
 
+
+#Q1:  How accurately can we predict the likelihood of crime being solved in Los Angeles based on the available data features in 2023?
 # %%
 ### Data Modelling
 data_2023.columns
@@ -356,6 +358,9 @@ print("Classification Report:\n", report)
 ###################################################
 ####################### Q2 ########################
 ###################################################
+
+#Q2: What are the key factors influencing crime rates across various neighborhoods or communities, and how have these factors evolved over the recent years?
+
 # %%
 
 print(data_2023.head())
@@ -644,6 +649,9 @@ These factors provide insights into where and when crimes are likely to occur an
 
 '''
 
+###################################################
+####################### Q3 ########################
+###################################################
 
 #Q3 Can we identify emerging spatial and temporal patterns or hotspots for crime categories to inform proactive and targeted interventions?
 
