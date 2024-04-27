@@ -43,7 +43,6 @@ data.drop(columns=columns_to_remove, inplace=True)
 data.head()
 #%%
 #create column month from DATE OCC
-data['DATE OCC'] = pd.to_datetime(data['DATE OCC'])
 data['Month'] = data['DATE OCC'].dt.month
 print(data.head())
 
